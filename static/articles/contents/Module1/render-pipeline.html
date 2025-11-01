@@ -1,0 +1,919 @@
+<h1>UnityShader</h1>
+<h2>渲染管线</h2>
+<p>
+  《Render-Time Rendering, Third Edition》[1]<br />
+  一书中将一个渲染流程分成3个阶段：应用阶段（Application
+  Stage）、几何阶段（Geometry Stage）、光栅化阶段（Rasterizer Stage）
+</p>
+<p>
+  <img
+    src="../../static/articles/img/render-pipeline/image-20250826155431732.png"
+    alt=""
+  />
+</p>
+<h3>应用阶段</h3>
+<p>
+  渲染流水线的起点是CPU，即应用阶段。<strong>应用阶段</strong>大致可分为下面3个阶段：<br />（1）把数据加载到显存中。<br />（2）设置渲染状态。<br />（3）调用Draw
+  Call（在本章的最后我们还会继续讨论它）
+</p>
+<p>
+  <img
+    src="../../static/articles/img/render-pipeline/image-20250826161253500.png"
+    alt=""
+  />
+</p>
+<p>
+  ▲图2.6　GPU的渲染流水线实现。颜色表示了不同阶段的可配置性或可编程性：绿色表示该流水线阶段是完全可编程控制的，黄色表示该流水线阶段可以配置但不是可编程的，蓝色表示该流水线阶段是由GPU固定实现的，开发者没有任何控制权。实线表示该Shader必须由开发者编程实现，虚线表示该Shader是可选的
+</p>
+<h3>几何阶段</h3>
+<p>
+  <strong>顶点着色器（Vertex Shader）<strong>是</strong>完全可编程的</strong
+  >，它通常用于实现顶点的空间变换、顶点着色等功能。
+</p>
+<p>
+  <strong>曲面细分着色器（Tessellation Shader）</strong>
+  是一个可选的着色器，它用于细分图元。
+</p>
+<p>
+  <strong>几何着色器（Geometry Shader）</strong>
+  同样是一个<strong>可选的着色器</strong>，它可以被用于执行逐图元（Per-Primitive）的着色操作，或者被用于产生更多的图元。
+</p>
+<p>
+  <strong
+    >裁剪（Clipping）<strong>这一阶段的目的是将那些不在摄像机视野内的顶点裁剪掉，并剔除某些三角图元的面片。这个阶段是</strong>可配置的</strong
+  >。例如，我们可以使用自定义的裁剪平面来配置裁剪区域，也可以通过指令控制裁剪三角图元的正面还是背面。
+</p>
+<p>
+  <strong
+    >屏幕映射（Screen
+    Mapping）<strong>这一阶段是</strong>不可配置和编程的</strong
+  >，它负责把每个图元的坐标转换到屏幕坐标系中。
+</p>
+<h3>光栅化阶段</h3>
+<p>
+  光栅化概念阶段中的<strong
+    >三角形设置（Triangle Setup）<strong>和</strong>三角形遍历（Triangle
+    Traversal）<strong>阶段也都是</strong>固定函数</strong
+  >（Fixed-Function）的阶段。
+</p>
+<p>
+  <strong>片元着色器（Fragment Shader）<strong>是</strong>完全可编程</strong
+  >的，它用于实现逐片元（Per-Fragment）的着色操作。
+</p>
+<p>
+  <strong>逐片元操作（Per-Fragment Operations）</strong>
+  阶段负责执行很多重要的操作，例如修改颜色、深度缓冲、进行混合等，它<strong>不是可编程的</strong>，但具有很高的可配置性。
+</p>
+<h3>部分细节说明</h3>
+<h6>屏幕映射</h6>
+<p>
+  屏幕映射不会对输入的z坐标做任何处理。实际上，屏幕坐标系和z
+  坐标一起构成了一个坐标系，叫做窗口坐标系（Window Coordinates）
+</p>
+<p>
+  屏幕映射得到的屏幕坐标决定了这个顶点对应屏幕上哪个像素以及距离这个像素有多远
+</p>
+<p>
+  屏幕坐标系在OpenGL和DirectX之间的差异问题。OpenGL把屏幕的左下角当成最小的窗口坐标值，而DirectX则定义了屏幕的左上角为最小的窗口坐标值。
+</p>
+<p>
+  <img
+    src="../../static/articles/img/render-pipeline/image-20250826162422333.png"
+    alt=""
+  />
+</p>
+<h6>光栅化阶段</h6>
+<p>
+  从上一个阶段输出的信息是屏幕坐标系下的顶点位置以及和它们相关的额外信息，如深度值（z
+  坐标）、法线方向、视角方向等。光栅化阶段有两个最重要的目标：计算每个图元覆盖了哪些像素，以及为这些像素计算它们的颜色。
+</p>
+<h6>三角形设置</h6>
+<p>这个阶段会计算光栅化一个三角网格所需的信息。</p>
+<p>边界框的计算和插值准备</p>
+<ol>
+  <li>
+    边界框的计算<br />边界框的计算是三角形设定阶段的第一步，主要目的是确定三角形在屏幕上的可见区域。具体实现时，可以考虑以下细节：
+  </li>
+</ol>
+<p>
+  最小和最大坐标：通过遍历三角形的三个顶点，找到它们的最小和最大x、y坐标。可以使用简单的条件判断来实现：
+</p>
+<pre
+  class="line-numbers"
+><code class="language-python">min_x = min(vertexA.x, vertexB.x, vertexC.x)
+max_x = max(vertexA.x, vertexB.x, vertexC.x)
+min_y = min(vertexA.y, vertexB.y, vertexC.y)
+max_y = max(vertexA.y, vertexB.y, vertexC.y)
+</code></pre>
+<p>
+  边界框的扩展：在某些情况下，可以考虑对边界框进行适度扩展，以确保在光栅化过程中不会遗漏任何可能的像素。这种扩展可以通过增加一个小的偏移量来实现。
+</p>
+<ol start="2">
+  <li>
+    插值准备<br />插值准备是三角形设定阶段的另一个关键部分，主要涉及到计算每个顶点属性的变化率，以便在遍历过程中进行线性插值。以下是一些具体的实现细节：
+  </li>
+</ol>
+<p>
+  <img
+    src="https://i-blog.csdnimg.cn/direct/69a722bb9c174efd9169838727609f39.png"
+    alt=""
+  />
+</p>
+<ol start="3">
+  <li>
+    <p>线性插值</p>
+    <p>
+      <img
+        src="https://i-blog.csdnimg.cn/direct/ba893ec6013c4ff9bb613f24843c0e8f.png"
+        alt=""
+      />
+    </p>
+  </li>
+  <li><p>处理特殊情况</p></li>
+</ol>
+<p>在三角形设定阶段，还需要考虑一些特殊情况，以确保光栅化的准确性：</p>
+<p>
+  共线三角形：如果三个顶点共线，可能会导致光栅化失败。可以通过检测三角形的面积（使用叉积）来判断是否共线。
+</p>
+<p>
+  反向三角形：如果三角形的顶点顺序不正确（例如，逆时针顺序），可能会导致光栅化错误。可以通过计算法向量来判断顶点的顺序。
+</p>
+<p>
+  [三角形设定 Triangle Setup]:
+  <a href="https://blog.csdn.net/qq_33060405/article/details/145672538"
+    >https://blog.csdn.net/qq_33060405/article/details/145672538</a
+  >
+  &quot;来自csdn&quot;
+</p>
+<h6>三角形遍历（Triangle Traversal）</h6>
+<p>
+  阶段将会检查每个像素是否被一个三角网格所覆盖。如果被覆盖的话，就会生成一个<strong
+    >片元（fragment）</strong
+  ><br />
+  而这样一个找到哪些像素被三角网格覆盖的过程就是三角形遍历，这个阶段也被称为<strong
+    >扫描变换（Scan Conversion）</strong
+  ><br />
+  三角形遍历阶段会根据上一个阶段的计算结果来判断一个三角网格覆盖了哪些像素，并使用三角网格3个顶点的顶点信息对整个覆盖区域的像素进行插值。
+</p>
+<h6>片元着色器（Fragment Shader）</h6>
+<p>在DirectX中，片元着色器被称为<strong>像素着色器（Pixel Shader）</strong></p>
+<p>
+  片元着色器的输入是上一个阶段对顶点信息插值得到的结果，更具体来说，是根据那些从顶点着色器中输出的数据插值得到的。而它的输出是一个或者多个颜色值。
+</p>
+<h6>逐片元操作（Per-Fragment Operations）</h6>
+<p>
+  这是OpenGL中的说法，在DirectX中，这一阶段被称为<strong
+    >输出合并阶段（Output-Merger）</strong
+  >
+</p>
+<p>
+  主要任务。<br />（1）决定每个片元的可见性。这涉及了很多测试工作，例如深度测试、模板测试等。<br />（2）如果一个片元通过了所有的测试，就需要把这个片元的颜色值和已经存储在颜色缓冲区中的颜色进行合并，或者说是混合。
+</p>
+<p>
+  <img
+    src="../../static/articles/img/render-pipeline/image-20250826164319506.png"
+    alt=""
+  />
+</p>
+<p>
+  <img
+    src="../../static/articles/img/render-pipeline/image-20250826164333004.png"
+    alt=""
+  />
+</p>
+<p><strong>模板测试:</strong></p>
+<p>
+  与之相关的是<strong>模板缓冲（Stencil Buffer）</strong
+  >。<br />如果开启了模板测试，GPU会首先读取（使用读取掩码）模板缓冲区中该片元位置的模板值，然后将该值和读取（使用读取掩码）到的参考值（reference
+  value）进行比较，这个比较函数可以是由开发者指定的，例如小于时舍弃该片元，或者大于等于时舍弃该片元。如果这个片元没有通过这个测试，该片元就会被舍弃。不管一个片元有没有通过模板测试，我们都可以根据模板测试和下面的深度测试结果来修改模板缓冲区，这个修改操作也是由开发者指定的。
+</p>
+<p>
+  模板测试还有一些更高级的用法，如渲染阴影、轮廓渲染等。常用的可能是做遮罩。
+</p>
+<p><strong>深度测试:</strong></p>
+<p>
+  如果开启了深度测试，GPU会把该片元的深度值和已经存在于深度缓冲区中的深度值进行比较。这个比较函数也是可由开发者设置的，例如小于时舍弃该片元，或者大于等于时舍弃该片元。通常这个比较函数是小于等于的关系，即如果这个片元的深度值大于等于当前深度缓冲区中的值，那么就会舍弃它。如果这个片元没有通过这个测试，该片元就会被舍弃。如果一个片元没有通过深度测试，它就没有权利更改深度缓冲区中的值。而如果它通过了测试，开发者还可以指定是否要用这个片元的深度值覆盖掉原有的深度值，这是通过开启/关闭深度写入来做到的。
+</p>
+<p><strong>合并：</strong></p>
+<p>
+  可以关闭**混合（Blend）**操作。这样片元着色器计算得到的颜色值就会直接覆盖掉颜色缓冲区中的像素值。但对于半透明物体，我们就需要使用混合操作来让这个物体看起来是透明的。
+</p>
+<h6>Early-Z</h6>
+<p>
+  深度测试是在片元着色器之前。这种将深度测试提前执行的技术通常也被称为<strong>Early-Z技术</strong>。
+</p>
+<h6>双重缓冲（Double Buffering）</h6>
+<p>
+  当模型的图元经过了上面层层计算和测试后，就会显示到我们的屏幕上。我们的屏幕显示的就是颜色缓冲区中的颜色值。但是，为了避免我们看到那些正在进行光栅化的图元，GPU会使用<strong
+    >双重缓冲（Double Buffering）</strong
+  >
+</p>
+<p>
+  对场景的渲染是在幕后发生的，即在<strong
+    >后置缓冲（Back
+    Buffer）<strong>中。一旦场景已经被渲染到了后置缓冲中，GPU就会</strong>交换</strong
+  >后置缓冲区和<strong>前置缓冲（Front Buffer）</strong>
+  中的内容，而前置缓冲区是之前显示在屏幕上的图像。由此，保证了我们看到的图像总是连续的。
+</p>
+<h3>其他补充</h3>
+<h4>OpenGL和DirectX</h4>
+<p>
+  OpenGL和DirectX就是这些图像应用编程接口，这些接口用于渲染二维或三维图形。可以说，这些接口架起了上层应用程序和底层GPU的沟通桥梁。一个应用程序向这些接口发送渲染命令，而这些接口会依次向显卡驱动（Graphics
+  Driver）发送渲染命令，这些显卡驱动是真正知道如何和GPU通信的角色，正是它们把OpenGL或者DirectX的函数调用翻译成了GPU能够听懂的语言，同时它们也负责把纹理等数据转换成GPU所支持的格式。一个比喻是，显卡驱动就是显卡的操作系统。
+</p>
+<p>
+  一个显卡除了有图像处理单元GPU外，还拥有自己的内存，这个内存通常被称为显存（Video
+  Random Access Memory，VRAM）<br />
+  。GPU可以在显存中存储任何数据，但对于渲染来说一些数据类型是必需的，例如用于屏幕显示的图像缓冲、深度缓冲等。
+</p>
+<h4>更高级的着色语言（Shading Language）</h4>
+<p>
+  <strong>DirectX的HLSL（High Level Shading Language）</strong>、<strong
+    >OpenGL的GLSL（OpenGL Shading Language）<strong>以及</strong>NVIDIA的CG（C
+    for Graphic）</strong
+  >
+</p>
+<p>
+  这些语言会被编译成与机器无关的汇编语言，也被称为中间语言（Intermediate
+  Language，IL）。这些中间语言再交给显卡驱动来翻译成真正的机器语言，即GPU可以理解的语言。
+</p>
+<h6>GLSL</h6>
+<p>
+  优点在于它的跨平台性，它可以在Windows、Linux、Mac甚至移动平台等多种平台上工作，但这种跨平台性是由于OpenGL没有提供着色器编译器，而是由显卡驱动来完成着色器的编译工作。GLSL是依赖硬件，而非操作系统层级的。但这也意味着GLSL的编译结果将取决于硬件供应商。
+</p>
+<h6>HLSL</h6>
+<p>
+  是由微软控制着色器的编译，就算使用了不同的硬件，同一个着色器的编译结果也是一样的（前提是版本相同）。但也因此支持HLSL的平台相对比较有限，几乎完全是微软自已的产品，如Windows、Xbox
+  360、PS3等。
+</p>
+<h6>Cg</h6>
+<p>
+  是真正意义上的跨平台。它会根据平台的不同，编译成相应的中间语言。语法和HLSL非常相像，Cg语言可以无缝移植成HLSL代码。但缺点是可能无法完全发挥出OpenGL的最新特性。
+</p>
+<h4>Draw Call</h4>
+<h6>CPU和GPU是如何实现并行工作的</h6>
+<p>使用一个<strong>命令缓冲区（Command Buffer</strong>）。</p>
+<p>
+  命令缓冲区包含了一个命令队列，由CPU向其中添加命令，而由GPU从中读取命令，添加和读取的过程是互相独立的。命令缓冲区使得CPU和GPU可以相互独立工作。当CPU需要渲染一些对象时，它可以向命令缓冲区中添加命令，而当GPU完成了上一次的渲染任务后，它就可以从命令队列中再取出一个命令并执行它。
+</p>
+<p>
+  命令缓冲区中的命令有很多种类，而Draw
+  Call是其中一种，其他命令还有改变渲染状态等（例如改变使用的着色器，使用不同的纹理等）。
+</p>
+<p>
+  <img
+    src="../../static/articles/img/render-pipeline/image-20250826180553503.png"
+    alt=""
+  />
+</p>
+<p>
+  ▲图2.19　命令缓冲区。CPU通过图像编程接口向命令缓冲区中添加命令，而GPU从中读取命令并执行。黄色方框内的命令就是Draw
+  Call，而红色方框内的命令用于改变渲染状态。我们使用红色方框来表示改变渲染状态的命令，
+  是因为这些命令往往更加耗时
+</p>
+<h6>Draw Call多了会影响帧率</h6>
+<p>
+  在每次调用Draw
+  Call之前，CPU需要向GPU发送很多内容，包括数据、状态和命令等。在这一阶段，CPU需要完成很多工作，例如检查渲染状态等。而一旦CPU完成了这些准备工作，GPU就可以开始本次的渲染。GPU的渲染能力是很强的，渲染200个还是2
+  000个三角网格通常没有什么区别，因此渲染速度往往快于CPU提交命令的速度。如果Draw
+  Call的数量太多，CPU就会把大量时间花费在提交Draw Call上，造成CPU的过载。
+</p>
+<h6>如何减少Draw Call</h6>
+<p>这里仅讨论使用**批处理（Batching）**的方法。</p>
+<p>
+  在游戏开发过程中，为了减少Draw Call的开销，有两点需要注意。<br />（1）避免使用大量很小的网格。当不可避免地需要使用很小的网格结构时，考虑是否可以合并它们。<br />（2）避免使用过多的材质。尽量在不同的网格之间共用同一个材质。<br />在本书的16.4节，我们会继续阐述如何在Unity中利用批处理技术来进行优化。
+</p>
+<h4>固定函数的流水线（Fixed-Function Pipeline）(被废弃)</h4>
+<p>
+  也简称为固定管线，通常是指在较旧的GPU上实现的渲染流水线。这种流水线只给开发者提供一些配置操作，但开发者没有对流水线阶段的完全控制权。
+</p>
+<p>
+  固定管线通常提供了一系列接口，这些接口包含了一个函数入口点（Function Entry
+  Points）集合，这些函数入口点会匹配GPU上的一个特定的逻辑功能。开发者们通过这些接口来控制渲染流水线。换句话说，固定渲染管线是只可配置的管线。
+</p>
+<p>如果读者不是为了对较旧的设备进行兼容，不建议继续使用固定管线的渲染方式</p>
+<h2>UnityShader</h2>
+<h3>Shader</h3>
+<p><strong>Standard Surface Shader</strong>会产生一个包含了标准光照模型</p>
+<p>
+  <strong>Unlit Shader</strong>
+  则会产生一个不包含光照（但包含雾效）的基本的顶点/片元着色器
+</p>
+<p>
+  <strong>Image Effect Shader</strong
+  >则为我们实现各种屏幕后处理效果（详见第12章）提供了一个基本模板。
+</p>
+<p>
+  <strong>Compute Shader</strong
+  >会产生一种特殊的Shader文件，这类Shader旨在利用GPU的并行性来进行一些与常规渲染流水线无关的计算
+</p>
+<p>
+  对于<strong>表面着色器</strong>（详见3.4.1节）来说，我们可以通过单击Show
+  generated
+  code按钮来打开一个新的文件，在该文件里将显示Unity在背后为该表面着色器生成的顶点/片元着色器。
+</p>
+<p>
+  这可以方便我们对这些生成的代码进行修改（需要复制到一个新的Unity
+  Shader中才可保存）和研究。
+</p>
+<p>
+  同样地，如果该Unity Shader是一个<strong>固定函数着色器</strong>，在Fixed
+  function 的后面也会出现一个Show generated code
+  按钮，来让我们查看该固定函数着色器生成的顶点/片元着色器。
+</p>
+<p>
+  <strong>Compile and show code下拉列表</strong>可以让开发者检查该Unity
+  Shader针对不同图像编程接口（例如OpenGL、D3D9、D3D11等）最终编译成的Shader代码，如图3.5所示。直接单击该按钮可以查看生成的底层的汇编指令。我们可以利用这些代码来分析和优化着色器。
+</p>
+<p>
+  <img
+    src="../../static/articles/img/render-pipeline/image-20250827212712732.png"
+    alt=""
+  /><img
+    src="../../static/articles/img/render-pipeline/image-20250827212732607.png"
+    alt=""
+  />
+</p>
+<p>
+  Unity Shader的导入面板还可以方便地查看其使用的<strong
+    >渲染队列（Render queue）</strong
+  >、是否关闭<strong>批处理（Disable batching）</strong
+  >、**属性列表（Properties）**等信息。
+</p>
+<h3>ShaderLab</h3>
+<h4>ShaderLab是什么</h4>
+<p><strong>ShaderLab</strong>Unity提供的一种专门为Unity Shader服务的语言。</p>
+<p>Unity Shader是Unity为开发者提供的高层级的渲染抽象层。</p>
+<p>
+  <img
+    src="https://i-blog.csdnimg.cn/blog_migrate/a053ff0f9a309dbecd78102ccacfdfa2.png"
+    alt=""
+  />
+</p>
+<p><strong>UnityShader的结构</strong></p>
+<pre
+  class="line-numbers"
+><code class="language-shaderlab">Shader &quot;MyShader&quot;
+{
+    Properties
+    {
+        //properties needs
+    }
+
+    SubShader
+    {
+        //true Shader code will be write here
+        //Surface Shder             表面着色器
+        //Vertex/Fragment Shader    顶点/片元着色器 
+        //Fixed Function Shader     固定函数着色器
+    }
+    SubShader
+    {
+
+    }
+}
+</code></pre>
+<h4>为Unity Shader起名字</h4>
+<p>
+  每个Unity Shader文件的第一行都需要通过Shader语义来指定该Unity
+  Shader的名字。这个名字由一个字符串来定义，如“MyShader”。当为材质选择使用的Unity
+  Shader时，这些名称就会出现在材质面板的下拉列表里。通过在字符串中添加斜杠（“/”），可以控制Unity
+  Shader在材质面板中出现的位置。例如：Shader &quot;Custom/MyShader&quot; { }
+</p>
+<h4>材质和Unity Shader的桥梁：Properties</h4>
+<h6>常见属性类型:</h6>
+<table>
+  <thead>
+    <tr>
+      <th>属性类型</th>
+      <th>默认值的定义语法</th>
+      <th>例子</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Int</td>
+      <td>number</td>
+      <td>_Int(&quot;Int&quot;,Int) = 2</td>
+    </tr>
+    <tr>
+      <td>Float</td>
+      <td>number</td>
+      <td>_Float(&quot;Float&quot;,Float) = 1.5</td>
+    </tr>
+    <tr>
+      <td>Range</td>
+      <td>number</td>
+      <td>_Range(&quot;Range&quot;,Range(0.0,5.0)) = 3.0</td>
+    </tr>
+    <tr>
+      <td>Color</td>
+      <td>(number,number,number,number)</td>
+      <td>_Color(&quot;Color&quot;,Color) =(1,1,1,1)</td>
+    </tr>
+    <tr>
+      <td>Vector</td>
+      <td>(number,number,number,number)</td>
+      <td>_Vector(&quot;Vector&quot;,Vector) =(2,3,6,1)</td>
+    </tr>
+    <tr>
+      <td>2D</td>
+      <td>&quot;defaulttexture&quot;{}</td>
+      <td>_2D(&quot;2D&quot;,2D) =&quot;&quot;{}</td>
+    </tr>
+    <tr>
+      <td>Cube</td>
+      <td>&quot;defaulttexture&quot;{}</td>
+      <td>_Cube(&quot;Cube&quot;,Cube) =&quot;white&quot;{}</td>
+    </tr>
+    <tr>
+      <td>3D</td>
+      <td>&quot;defaulttexture&quot;{}</td>
+      <td>_3D(&quot;3D&quot;,3D) =&quot;black&quot;{}</td>
+    </tr>
+  </tbody>
+</table>
+<p>
+  于<strong>Int、Float 、Range</strong
+  >这些数字类型的属性，其默认值就是一个单独的数字
+</p>
+<p>
+  对于<strong>Color和Vector</strong> 这类属性，默认值是用圆括号包围的一个<strong
+    >四维向量</strong
+  >
+</p>
+<p>
+  对于<strong>2D、Cube、3D</strong> 这3种纹理类型
+  它们的默认值是通过<strong>一个字符串后跟一个花括号</strong>来指定的，其中，字符串要么是<strong>空的</strong>，要么是<strong>内置的纹理名称</strong>，如“white”“black”“gray”或者“bump”。花括号的用处原本是用于指定一些纹理属性的，例如在Unity
+  5.0以前的版本中，我们可以通过TexGenCubeReflect 、TexGen
+  CubeNormal等选项来控制固定管线的纹理坐标的生成。但在Unity
+  5.0以后的版本中，这些选项被移除了，如果我们需要类似的功能，就需要自己在顶点着色器中编写计算相应纹理坐标的代码。
+</p>
+<p>
+  &quot;white&quot;：全白纹理(RGBA: 1,1,1,1)<br />&quot;black&quot;：全黑纹理(RGBA:
+  0,0,0,1)<br />&quot;gray&quot;：灰色纹理(RGBA: 0.5,0.5,0.5,1)<br />&quot;bump&quot;：法线贴图蓝色(RGBA:
+  0.5,0.5,1,1)<br />&quot;red&quot;：红色纹理(RGBA: 1,0,0,1)<br />&quot;empty&quot;：完全透明纹理(RGBA:
+  0,0,0,0)
+</p>
+<h6>常见的修饰符</h6>
+<p>
+  <strong>[HideInInspector]</strong><br />语法：[HideInInspector] _HiddenProp
+  (&quot;Hidden Property&quot;, Float) = 1.0<br />作用：隐藏属性，使其不在材质面板中显示，但仍可在代码中使用。<br /><strong
+    >[NoScaleOffset]</strong
+  ><br />语法：[NoScaleOffset] _TextureProp (&quot;Texture Property&quot;, 2D) =
+  &quot;white&quot; {}<br />作用：对于纹理属性，隐藏缩放（Scale）和偏移（Offset）控件。
+</p>
+<p>
+  <img
+    src="https://i-blog.csdnimg.cn/direct/88064f2c049044fa97b48d1d9edba0f9.png"
+    alt=""
+  />
+</p>
+<p>
+  <strong>[Normal]</strong><br />语法：[Normal] _NormalMap (&quot;Normal
+  Map&quot;, 2D) = &quot;bump&quot; {}<br />作用：标记该纹理为法线贴图，Unity会自动处理法线解码。<br />
+  <strong>[HDR]</strong><br />语法：[HDR] _HDRColor (&quot;HDR Color&quot;,
+  Color) = (1,1,1,1)<br />作用：允许颜色值超过1.0，适用于高动态范围（HDR）效果。
+</p>
+<p>
+  <img
+    src="https://i-blog.csdnimg.cn/direct/d86de1c2452d4602892f0af1efce54c5.png"
+    alt=""
+  />
+</p>
+<p><strong>[Header] 和 [Space]</strong></p>
+<p>用于组织材质Inspector，提高可读性。</p>
+<pre class="line-numbers"><code class="language-csharp">[Header(Main Settings)]
+_MainTex (&quot;Albedo&quot;, 2D) = &quot;white&quot; {}
+ 
+[Space(10)]
+[Header(Normal Mapping)]
+_BumpMap (&quot;Normal Map&quot;, 2D) = &quot;bump&quot; {}
+</code></pre>
+<p>
+  <img
+    src="https://i-blog.csdnimg.cn/direct/751ad29e4e40467097b825c355e16155.png"
+    alt=""
+  />
+</p>
+<p><strong>[Toggle] 和 [ToggleOff]</strong></p>
+<p>提供布尔值复选框控件：</p>
+<ul>
+  <li>[Toggle]：值为1时启用</li>
+  <li>[ToggleOff]：值为0时启用</li>
+</ul>
+<p>
+  <img
+    src="https://i-blog.csdnimg.cn/direct/f89341b3e7bf4ae6a2d259ab77fed1c3.png"
+    alt=""
+  />
+</p>
+<p><strong>[Enum]</strong></p>
+<p>创建下拉菜单选择控件，可以使用内置枚举或自定义值。</p>
+<pre
+  class="line-numbers"
+><code class="language-csharp">[Enum(UnityEngine.Rendering.CullMode)] _Cull (&quot;Culling Mode&quot;, Float) = 2
+[Enum(Off,0,On,1)] _ZWrite (&quot;ZWrite&quot;, Float) = 1
+</code></pre>
+<p>
+  <img
+    src="https://i-blog.csdnimg.cn/direct/0566145e76924d76a60d1d216e8902f0.png"
+    alt=""
+  />
+</p>
+<p><strong>[KeywordEnum]</strong></p>
+<p>生成着色器变体的下拉菜单，并自动定义对应着色器关键字。</p>
+<p>
+  <img
+    src="https://i-blog.csdnimg.cn/direct/8b5041154b07419f8b90bb0eed1069cf.png"
+    alt=""
+  />
+</p>
+<p><strong>[PowerSlider]</strong></p>
+<p>创建非线性分布的滑动条控件，使得低值区域有更细致的控制。</p>
+<pre
+  class="line-numbers"
+><code class="language-shaderlab">[PowerSlider(3.0)] _Shininess (&quot;Shininess&quot;, Range(0.01, 1)) = 0.08
+</code></pre>
+<p>
+  <img
+    src="https://i-blog.csdnimg.cn/direct/471e5cf23fab4fd7872a36f9323c7658.png"
+    alt=""
+  />
+</p>
+<p><strong>4.9 [MainTexture] 和 [MainColor]</strong></p>
+<p>标记主纹理和主颜色，用于材质球预览和全局控制。</p>
+<pre
+  class="line-numbers"
+><code class="language-shaderlab">[MainTexture] _BaseMap (&quot;Base Map&quot;, 2D) = &quot;white&quot; {}
+[MainColor] _BaseColor (&quot;Base Color&quot;, Color) = (1,1,1,1)
+</code></pre>
+<p>
+  <img
+    src="https://i-blog.csdnimg.cn/direct/e1c740cc68574f6d9b91b3eecf60e0d7.png"
+    alt=""
+  />
+</p>
+<h6>其他</h6>
+<p>
+  有时，我们想要<strong>在材质面板上显示更多类型的变量</strong>，例如使用布尔变量来控制Shader中使用哪种计算。Unity<strong>允许我们重载默认的材质编辑面板</strong>，以<strong>提供更多自定义的数据类型</strong>。
+</p>
+<p>
+  为了在Shader中可以访问到这些属性，我们需要在Cg代码片中定义和这些属性类型相匹配的变量。需要说明的是，即使我们不在Properties
+  语义块中声明这些属性
+</p>
+<p>
+  也可以直接在Cg代码片中定义变量。此时，我们可以通过脚本向Shader中传递这些属性。因此，Properties<strong>语义块的作用</strong>仅仅是为了让这些属性可以出现在材质面板中。
+</p>
+<h4>SubShader</h4>
+<p>
+  每一个Unity Shader文件可以包含多个SubShader
+  语义块，但<strong>最少要有一个</strong>。当Unity需要加载这个Unity
+  Shader时，Unity会扫描所有的SubShader
+  语义块，然后<strong>选择第一个能够</strong>在目标平台上<strong>运行</strong>的SubShader
+  。如果都不支持的话，Unity就会使用Fallback语义指定的Unity Shader。
+</p>
+<p>SubShader语义块中包含的定义通常如下：</p>
+<pre class="line-numbers"><code class="language-shaderlab">SubShader
+{
+    //可选的标签
+    [Tags]
+
+    //可选的状态
+    [RenderSetUp]
+
+    //一个Pass定义了一个完整的渲染流程
+    Pass
+    {
+        //true Shader code will be write here
+        //Surface Shder             表面着色器
+        //Vertex/Fragment Shader    顶点/片元着色器 
+        //Fixed Function Shader     固定函数着色器
+    }
+}
+</code></pre>
+<p>
+  SubShader 中定义了一系列Pass<br />
+  以及可选的<strong
+    >状态（[RenderSetup]）<strong>和</strong>标签（[Tags]）<strong
+      >设置。每个Pass定义了一次完整的渲染流程，但如果Pass
+      的数目过多，往往会造成渲染性能的下降。因此，我们应</strong
+    >尽量使用最小数目的Pass</strong
+  >
+  。
+</p>
+<p>
+  状态和标签同样可以在Pass
+  声明。不同的是，SubShader中的一些标签设置是特定的。也就是说，这些<strong>标签设置和Pass中使用的标签是不一样的</strong>。而对于状态设置来说，其使用的语法是相同的。
+</p>
+<p>
+  但是，如果我们在SubShader
+  进行了这些设置，那么将会<strong>用于所有的Pass</strong>。
+</p>
+<h5>状态设置</h5>
+<p>
+  ShaderLab提供了一系列渲染状态的设置指令，这些指令可以设置显卡的各种状态，例如是否开启混合/深度测试等。
+</p>
+<p><strong>常见的渲染状态设置选项:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>状态名称</th>
+      <th>设置指令</th>
+      <th>解释</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Cull</td>
+      <td>Cull Back ｜ Front｜ Off</td>
+      <td>设置剔除模式：剔除背面/正面/关闭剔除</td>
+    </tr>
+    <tr>
+      <td>ZTest</td>
+      <td>ZTest Less Greater｜ LEqual｜ GEqual｜ Equal｜ NotEqual｜ Always</td>
+      <td>设置深度测试时使用的函数</td>
+    </tr>
+    <tr>
+      <td>ZWrite</td>
+      <td>ZWrite On｜Off</td>
+      <td>开启/关闭深度写入</td>
+    </tr>
+    <tr>
+      <td>Blend</td>
+      <td>Blend SrcFactor DstFactor</td>
+      <td>开启并设置混合模式</td>
+    </tr>
+  </tbody>
+</table>
+<p>
+  如果我们不想这样（例如在双面渲染中，我们希望在第一个Pass
+  中剔除正面来对背面进行渲染，在第二个Pass
+  中剔除背面来对正面进行渲染），可以在Pass 语义块中单独进行上面的设置。
+</p>
+<h5>SubShader 的标签（Tags）</h5>
+<p>
+  是一个键值对（Key/Value
+  Pair），它的键和值都是字符串类型。这些键值对是SubShader
+  和渲染引擎之间的沟通桥梁。它们用来告诉Unity的渲染引擎：我希望怎样以及何时渲染这个对象。
+</p>
+<p>结构如下:</p>
+<pre
+  class="line-numbers"
+><code class="language-shaderlab">Tags { &quot;TagName1&quot; = &quot;Value1&quot; &quot;TagName2&quot; = &quot;Value2&quot; }
+</code></pre>
+<h5><strong>SubShader的标签类型</strong></h5>
+<table>
+  <thead>
+    <tr>
+      <th>标签类型</th>
+      <th>说明</th>
+      <th>例子</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Queue</td>
+      <td>
+        控制渲染顺序，指定该物体属于哪一个渲染队列，通过这种方式可以保证所有的透明物体可以在所有不透明物体后面被渲染（详见第8章），我们也可以自定义使用的渲染队列来控制物体的渲染顺序
+      </td>
+      <td>Tags { &quot;Queue&quot; = &quot;Transparent&quot; }</td>
+    </tr>
+    <tr>
+      <td>RenderType</td>
+      <td>
+        对着色器进行分类，例如这是一个不透明的着色器，或是一个透明的着色器等。这可以被用于着色器替换（Shader
+        Replacement）功能
+      </td>
+      <td>Tags { &quot;RenderType&quot; = &quot;Opaque&quot; }</td>
+    </tr>
+    <tr>
+      <td>DisableBatching</td>
+      <td>
+        一些SubShader在使用Unity的批处理功能时会出现问题，例如使用了模型空间下的坐标进行顶点动画（详见11.3节）。这时可以通过该标签来直接指明是否对该SubShader
+        使用批处理
+      </td>
+      <td>Tags { &quot;DisableBatching&quot; = &quot;True&quot; }</td>
+    </tr>
+    <tr>
+      <td>ForceNoShadowCasting</td>
+      <td>控制使用该SubShader 的物体是否会投射阴影</td>
+      <td>Tags { &quot;ForceNoShadowCasting&quot; = &quot;True&quot; }</td>
+    </tr>
+    <tr>
+      <td>IgnoreProjector</td>
+      <td>
+        如果该标签值为“True”，那么使用该SubShader
+        的物体将不会受Projector的影响。通常用于半透明物体
+      </td>
+      <td>Tags { &quot;IgnoreProjector&quot; = &quot;True&quot; }</td>
+    </tr>
+    <tr>
+      <td>CanUseSpriteAtlas</td>
+      <td>当该SubShader 是用于精灵（sprites）时，将该标签设为“False”</td>
+      <td>Tags { &quot;CanUseSpriteAtlas&quot; = &quot;False&quot; }</td>
+    </tr>
+    <tr>
+      <td>PreviewType</td>
+      <td>
+        指明材质面板将如何预览该材质。默认情况下，材质将显示为一个球形，我们可以通过把该标签的值设为“Plane”“SkyBox”来改变预览类型
+      </td>
+      <td>Tags { &quot;PreviewType&quot; = &quot;Plane&quot; }</td>
+    </tr>
+  </tbody>
+</table>
+<p>需要注意的是，上述标签仅可以在SubShader中声明，而不可以在Pass块中声明。</p>
+<h5>Pass 语义块</h5>
+<p>语义如下:</p>
+<pre class="line-numbers"><code class="language-shaderlab">Pass
+{
+    [Name]
+    [Tags]
+    [RenderSetUp]
+    //Other code
+}
+</code></pre>
+<h6>Pass的名称</h6>
+<p>我们可以在Pass 中定义该<strong>Pass的名称</strong></p>
+<pre
+  class="line-numbers"
+><code class="language-shaderlab">Name &quot;MyPassName&quot;
+</code></pre>
+<p>
+  过这个名称，我们可以使用ShaderLab的UsePass命令来直接使用其他Unity
+  Shader中的Pass例如：
+</p>
+<pre
+  class="line-numbers"
+><code class="language-shaderlab">UsePass &quot;MyShader/MYPASSNAME&quot;
+</code></pre>
+<p>
+  可以<strong>提高代码的复用性</strong>。需要注意的是，由于Unity内部会把所有Pass
+  的名称转换成<strong>大写字母</strong>的表示，因此，在使用UsePass命令时必须使用大写形式的名字。
+</p>
+<h6>设置渲染状态</h6>
+<p>
+  可以<strong>对Pass 设置渲染状态</strong>。SubShader
+  的状态设置同样适用于Pass。还可以使用固定管线的着色器（详见3.4.3节）命令。
+</p>
+<h6>标签</h6>
+<p>
+  Pass同样<strong>可以设置标签</strong>，但它的标签不同于SubShader
+  的标签。这些标签也是用于告诉渲染引擎我们希望怎样来渲染该物体。
+</p>
+<p><strong>Pass的标签类型</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>标签类型</th>
+      <th>说明</th>
+      <th>例子</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>LightMode</td>
+      <td>定义该Pass在Unity的渲染流水线中的角色</td>
+      <td>Tags { &quot;LightMode&quot; = &quot;ForwardBase&quot; }</td>
+    </tr>
+    <tr>
+      <td>RequireOptions</td>
+      <td>
+        用于指定当满足某些条件时才渲染该Pass，它的值是一个由空格分隔的字符串。目前，Unity支持的选项有：SoftVegetation。
+      </td>
+      <td>Tags { &quot;RequireOptions&quot; = &quot;SoftVegetation&quot; }</td>
+    </tr>
+  </tbody>
+</table>
+<h6>特殊的Pass</h6>
+<p>
+  Unity Shader还支持一些<strong>特殊的Pass</strong>
+  ，以便进行代码复用或实现更复杂的效果。
+</p>
+<p>
+  <strong>UsePass</strong>：如我们之前提到的一样，可以使用该命令来复用其他Unity
+  Shader中的Pass<br /><strong>GrabPass</strong>
+  ：该Pass 负责抓取屏幕并将结果存储在一张纹理中，以用于后续的Pass处理
+</p>
+<h4><strong>Fallback</strong></h4>
+<p>
+  它用于告诉Unity，“如果上面所有的SubShader在这块显卡上都不能运行，那么就使用这个最低级的Shader吧！”
+</p>
+<p><strong>语义</strong></p>
+<pre
+  class="line-numbers"
+><code class="language-shaderlab">Fallback &quot;name&quot;
+// 或者
+Fallback Off
+</code></pre>
+<p>
+  事实上，Fallback
+  还会<strong>影响阴影的投射</strong>。在渲染阴影纹理时，Unity会在每个Unity
+  Shader中寻找一个阴影投射的Pass。通常情况下，我们不需要自己专门实现一个Pass，这是因为Fallback
+  使用的内置Shader中包含了这样一个通用的Pass。
+</p>
+<h4>其他语义？</h4>
+<p>
+  除了上述的语义，还有一些不常用到的语义。例如，如果我们不满足于Unity内置的属性类型，想要自定义材质面板的编辑界面，就可以使用<strong
+    >CustomEditor</strong
+  >
+  语义来<strong>扩展编辑界面</strong>。
+</p>
+<p>
+  使用<strong>Category</strong> 语义来对Unity
+  Shader中的命令进行<strong>分组</strong>。
+</p>
+<h4>表面着色器（Surface Shader）</h4>
+<p>
+  是Unity自己创造的一种着色器代码类型。它需要的代码量很少，Unity在背后做了很多工作，但<strong>渲染的代价比较大</strong>。
+</p>
+<p>
+  当给Unity提供一个表面着色器的时候，它在背后<strong>仍旧把它转换成对应的顶点/片元着色器</strong>。
+</p>
+<p><strong>示例代码</strong></p>
+<pre
+  class="line-numbers"
+><code class="language-shaderlab">Shader &quot;Custom/Simple Surface Shader&quot; {
+    SubShader {
+        Tags { &quot;RenderType&quot; = &quot;Opaque&quot; }
+        CGPROGRAM
+        #pragma surface surf Lambert
+        struct Input {
+            float4 color : COLOR;
+        };
+        void surf (Input IN, inout SurfaceOutput o) {
+            o.Albedo = 1;
+        }
+        ENDCG
+    }
+    Fallback &quot;Diffuse&quot;
+}
+</code></pre>
+<p>
+  表面着色器被<strong>定义在SubShader语义块</strong>（而非Pass语义块）中的CGPROGRAM和ENDCG之间。
+</p>
+<p>
+  CGPROGRAM和ENDCG之间的代码是使用Cg/HLSL编写的。这里的Cg/HLSL是Unity经封装后提供的
+</p>
+<h4>顶点/片元着色器（Vertex/Fragment Shader）</h4>
+<p><strong>示例代码</strong></p>
+<pre
+  class="line-numbers"
+><code class="language-shaderlab">Shader &quot;Custom/Simple VertexFragment Shader&quot; {
+    SubShader {
+        Pass {
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
+            float4 vert(float4 v : POSITION) : SV_POSITION {
+                return mul (UNITY_MATRIX_MVP, v);
+            }
+
+            fixed4 frag() : SV_Target {
+                return fixed4(1.0,0.0,0.0,1.0);
+            }
+
+            ENDCG
+        }
+    }
+}
+</code></pre>
+<p>
+  顶点/片元着色器的代码也需要定义在CGPROGRAM
+  和ENDCG之间，但不同的是，顶点/片元着色器是<strong>写在Pass语义块内</strong>，而非SubShader内的。
+</p>
+<h4>固定函数着色器（Fixed Function Shader）</h4>
+<p><strong>示例</strong></p>
+<pre
+  class="line-numbers"
+><code class="language-shaderlab">Shader &quot;Tutorial/Basic&quot; {
+    Properties {
+        _Color (&quot;Main Color&quot;, Color) = (1,0.5,0.5,1)
+    }
+    SubShader {
+        Pass {
+            Material {
+                Diffuse [_Color]
+            }
+            Lighting On
+        }
+    }
+}
+</code></pre>
+<p>
+  固定函数着色器的代码被<strong>定义在Pass语义块中</strong>，这些代码相当于Pass
+  中的一些渲染设置
+</p>
+<p>
+  对于固定函数着色器来说，我们需要<strong>完全使用ShaderLab的语法</strong>（即使用ShaderLab的渲染设置命令）来编写，而非使用Cg/HLSL。
+</p>
+<h4>其他</h4>
+<p>
+  在Unity里，Unity Shader实际上指的就是一个ShaderLab文件——硬盘上以**.shader**
+  作为文件后缀的一种文件。
+</p>
+<p>
+  <strong>GLSL</strong
+  >的代码需要嵌套在<strong>GLSLPROGRAM和ENDGLSL之间</strong>。
+</p>

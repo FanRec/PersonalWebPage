@@ -1,0 +1,110 @@
+@charset "utf-8";
+.main {
+  height: 100vh;
+  /* scroll-snap-type: y mandatory; */
+  overflow: scroll;
+  overflow-x: hidden;
+}
+.titleImg {
+  background-image: url("../static/img/9.jpg");
+  height: 100vh;
+  width: 100vw;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+
+  transition: 0.5s ease 0s;
+  animation: load 0.5s;
+}
+.titleImg .title {
+  width: 100vw;
+  padding: 20px;
+  font-size: 100px;
+  font-weight: bolder;
+  color: rgba(223, 232, 255, 0.9);
+  text-align: center;
+  font-family: Microsoft YaHei;
+  letter-spacing: 5vw;
+  transition: all 0.5s ease 0.3s;
+  user-select: none;
+}
+.titleImg .title:hover {
+  transform: scale(1.5);
+  color: rgba(1, 1, 1, 0);
+}
+.sec {
+  width: 100vw;
+  height: 100vh;
+  /* scroll-snap-align: start; */
+}
+.pt {
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+  width: 250px;
+  float: left;
+  margin: 150px 0px 0px 105px;
+  background: rgba(219, 235, 241, 0.8);
+  border-radius: 15px;
+  box-shadow: 0 0 15px rgb(59, 73, 95);
+  /* filter: blur(3px); 模糊 */
+  overflow: hidden;
+  /* scroll-snap-align: start;s */
+  transition: all 0.5s ease 0s;
+}
+.part1 .img {
+  background-image: url("../static/img/4.png");
+  background-position: 0 -30px;
+}
+.part2 .img {
+  background-image: url("../static/img/5.jpg");
+}
+.part3 .img {
+  background-image: url("../static/img/6.png");
+}
+.part4 .img {
+  background-image: url("../static/img/3.jpg");
+  background-position: 0 -30px;
+}
+.pt:hover {
+  cursor: pointer;
+  transform: scale(1.05);
+}
+.pt .img {
+  width: 250px;
+  height: 190px;
+  background-size: cover;
+  transition: all 0.5s ease 0s;
+  opacity: 0.8;
+}
+.pt .img:hover {
+  transform: scale(1.1);
+}
+.pt .txt {
+  width: 250px;
+  height: 310px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: auto;
+}
+.pt .txt h1 {
+  text-align: center;
+  font-size: 3em;
+  color: rgb(75, 115, 161);
+  height: 30px;
+  line-height: 30px;
+  font-family: YouYuan;
+}
+.pt .txt p {
+  margin-top: -2px;
+  overflow-wrap: break-word;
+  color: rgb(71, 175, 207);
+}
+@keyframes load {
+}

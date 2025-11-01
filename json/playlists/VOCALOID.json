@@ -1,0 +1,56 @@
+[
+  {
+    "title": "Wonderdogs' Parade",
+    "name": "IA & MIKU",
+    "src": "../static/Audio/music/Wonderdogs' Parade  IA & MIKU.mp3",
+    "image": "../static/Audio/music/img/WonderdogsParade.jpg"
+  },
+  {
+    "title": "愛属性",
+    "name": "初音ミク",
+    "src": "../static/Audio/music/ピノキオピー - 愛属性 feat. 初音ミク.mp3",
+    "image": "../static/Audio/music/img/ピノキオピー愛属性.jpg"
+  },
+  {
+    "title": "Monitoring(Best Friend Remix)",
+    "name": "初音ミク",
+    "src": "../static/Audio/music/DECO27 - Monitoring (Best Friend Remix) feat. Hatsune Miku.mp3",
+    "image": "../static/Audio/music/img/MonitoringBestFriendRemix.jpg"
+  },
+  {
+    "title": "モニタリング",
+    "name": "初音ミク",
+    "src": "../static/Audio/music/DECO27 - モニタリング feat. 初音ミク.mp3",
+    "image": "../static/Audio/music/img/モニタリング.jpg"
+  },
+  {
+    "title": "転生林檎",
+    "name": "初音ミク",
+    "src": "../static/Audio/music/ピノキオピー - 転生林檎 feat. 初音ミク.mp3",
+    "image": "../static/Audio/music/img/転生林檎.jpg"
+  },
+  {
+    "title": "Marshmallow",
+    "name": "Hatsune Miku",
+    "src": "../static/Audio/music/DECO27 - Marshmallow feat. Hatsune Miku.mp3",
+    "image": "../static/Audio/music/img/Marshmallow.jpg"
+  },
+  {
+    "title": "妄想感伤代偿联盟",
+    "name": "初音ミク",
+    "src": "../static/Audio/music/妄想感伤代偿联盟 DECO27 初音ミク.mp3",
+    "image": "../static/Audio/music/img/妄想感伤代偿联盟.jpg"
+  },
+  {
+    "title": "不为人知的鹅妈妈童谣",
+    "name": "wowaka初音ミク",
+    "src": "../static/Audio/music/アンノウン・マザーグース不为人知的鹅妈妈童谣 wowaka初音ミク.mp3",
+    "image": "../static/Audio/music/img/不为人知的鹅妈妈童谣.jpg"
+  },
+  {
+    "title": "らくらく安楽死",
+    "name": "初音ミク",
+    "src": "../static/Audio/music/らくらく安楽死（欢欢乐乐安乐死）.mp3",
+    "image": "../static/Audio/music/img/らくらく安楽死.jpg"
+  }
+]

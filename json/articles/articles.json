@@ -1,0 +1,53 @@
+[
+  {
+    "Module0": {
+      "title": "了解这个网站",
+      "name": "Module0",
+      "img": "../../static/articles/icon/module0.jpg",
+      "date": "2025/10/31",
+      "type": "",
+      "tag": "",
+      "articles": [
+        {
+          "type": "folder",
+          "name": "快速了解 ▼",
+          "children": [
+            {
+              "type": "file",
+              "name": "简介",
+              "path": "articles/contents/Module0/introduction.html"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "Module1": {
+      "title": "文章大杂烩",
+      "name": "Module1",
+      "img": "../../static/articles/icon/module1.jpg",
+      "date": "2025/10/31",
+      "type": "",
+      "tag": "",
+      "articles": [
+        {
+          "type": "file",
+          "name": "今天，我们为什么需要九三大阅兵？",
+          "path": "articles/contents/Module1/93-parade.html"
+        },
+        {
+          "type": "folder",
+          "name": "学习笔记 ▼",
+          "children": [
+            {
+              "type": "file",
+              "name": "渲染管线学习笔记",
+              "path": "articles/contents/Module1/render-pipeline.html"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]
