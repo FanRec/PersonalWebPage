@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>冰窟|Blog</title>
+    <!-- Prism -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.css"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="icon"
+      type="image/svg"
+      href="../../static/img/svg/icon/blog.svg"
+    />
+    <link rel="stylesheet" href="../../css/article.css" />
+    <script src="../../js/article_switch.js"></script>
+  </head>
+
+  <body>
+    <div class="center fixed">
+      <div class="popup-container">
+        <div class="menu-popup-box hide">
+          <h1>🔳设置</h1>
+          <div class="day-and-night">
+            <input type="checkbox" id="day_night_checkbox" />
+            <label for="day_night_checkbox">
+              <span></span>
+            </label>
+          </div>
+          <button class="pop-close-btn">X</button>
+        </div>
+      </div>
+    </div>
+    <aside class="leftbar" id="leftbar" role="navigation" aria-label="文档导航">
+      <div class="left-search">
+        <input
+          placeholder="🔍 搜索标题/内容"
+          onfocus="this.placeholder='请输入..'"
+          onblur="this.placeholder='🔍 搜索标题/内容'"
+          aria-label="搜索标题或内容"
+        />
+        <button
+          id="left-toggleBtn"
+          class="toggle"
+          aria-expanded="true"
+          title="折叠/展开目录"
+        >
+          ◀
+        </button>
+      </div>
+      <hr />
+      <ul class="toc" id="toc-container" role="list"></ul>
+    </aside>
+    <div class="main-panel">
+      <header class="header">
+        <span class="header-left">
+          <button
+            class="top-toggleBtn hide"
+            id="top-toggleBtn"
+            title="折叠/展开目录"
+          >
+            ◀
+          </button>
+          <a class="logo" href="../blog.html">|Blog</a>
+          <span class="title" id="article-title-header">文章标题</span>
+        </span>
+        <span class="header-right">
+          <span class="message"></span>
+          <span class="search"></span>
+          <button class="menu" id="popMenuBtn">☰</button>
+          <a href="../home.html"
+            ><span class="mainPage">冰窟|My Profile</span></a
+          >
+        </span>
+      </header>
+      <main>
+        <div class="next-space-page">
+          <div class="page-header">
+            <div class="banner">
+              <div class="bg-cover" id="banner-bg-cover"></div>
+              <div class="banner-content">
+                <div class="banner-title-text" id="banner-title-text">
+                  banner content
+                </div>
+                <div class="banner-icon" id="banner-icon">A</div>
+              </div>
+            </div>
+            <div class="spacer"></div>
+            <h1 class="title" id="main-article-title">文章标题</h1>
+          </div>
+
+          <div class="page-content">
+            <article class="article">
+              <div class="article-content" id="article-content"></div>
+              <div class="spacer"></div>
+              <div class="chapter-switcher">
+                <button class="small-card" id="pre-chapter" title="上一章">
+                  <h1>上一章</h1>
+                  <h3>已经到顶了</h3>
+                </button>
+                <button class="small-card" id="next-chapter" title="下一章">
+                  <h1>下一章</h1>
+                  <h3>已经到底了</h3>
+                </button>
+              </div>
+            </article>
+            <aside class="rightbar" id="rightbar" aria-label="文章目录">
+              <div>
+                <button
+                  id="right-toggleBtn"
+                  class="toggle right-toggleBtn"
+                  aria-expanded="true"
+                  title="折叠/展开目录"
+                >
+                  ☰
+                </button>
+              </div>
+              <ul id="dictionary" class="dictionary" role="list"></ul>
+            </aside>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"></script>
+
+    <script src="../../js/prism-shaderlab.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  </body>
+</html>

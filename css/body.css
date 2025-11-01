@@ -1,0 +1,37 @@
+@charset "utf-8";
+body {
+  margin: 0;
+  padding: 0;
+  /* background-image: url("../static/img/1.gif"); */
+  background-image: url(https://api.paugram.com/wallpaper/),
+    url("../static/img/1.gif");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: right;
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+.foot {
+  margin-top: 0px;
+  width: 100vw;
+  height: 100px;
+  float: left;
+  clear: both;
+  text-align: center;
+  margin-bottom: 0px;
+  background-color: rgba(91, 148, 171, 0.8);
+}
+.foot p {
+  line-height: 10px;
+  color: rgb(28, 43, 43);
+}
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(98, 129, 172, 0.8);
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(160, 180, 209);
+}
