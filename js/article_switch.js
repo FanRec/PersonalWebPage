@@ -654,27 +654,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function initializeApp() {
-    // 1. 运行所有静态UI初始化
+    // 运行所有静态UI初始化
     initializeStaticUI();
 
-    // 2. 加载元数据
+    // 加载元数据
     try {
       await loadMetadata();
     } catch {
       return;
     }
 
-    // 3. 获取完整的TOC数据
+    // 获取完整的TOC数据
     try {
       await loadFullTocData();
     } catch {
       return;
     }
 
-    // 4. 监听URL哈希值的变化
+    // 监听URL哈希值的变化
     window.addEventListener("hashchange", handleRouteChange);
 
-    // 5. 立即运行一次，处理初始页面加载 (现在会处理模块路由)
+    // 立即运行一次，处理初始页面加载 (现在会处理模块路由)
     handleRouteChange();
   }
 

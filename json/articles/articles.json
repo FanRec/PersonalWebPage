@@ -1,12 +1,15 @@
 [
   {
     "Module0": {
-      "title": "了解这个网站",
+      "title": "Introduction to the website",
       "name": "Module0",
       "img": "../../static/articles/icon/module0.jpg",
       "date": "2025/10/31",
-      "type": "",
-      "tag": "",
+      "category": "Examples",
+      "tag": "Guides",
+      "summary": "Read this article to learn more about the website and its features.",
+      "words": "1000",
+      "readingTime": "5",
       "articles": [
         {
           "type": "folder",
@@ -24,12 +27,15 @@
   },
   {
     "Module1": {
-      "title": "文章大杂烩",
+      "title": "Online learning courses",
       "name": "Module1",
       "img": "../../static/articles/icon/module1.jpg",
       "date": "2025/10/31",
-      "type": "",
-      "tag": "",
+      "category": "Course",
+      "tag": "Examples",
+      "summary": "web基础与前端开发课程实验一",
+      "words": "10000",
+      "readingTime": "30",
       "articles": [
         {
           "type": "file",

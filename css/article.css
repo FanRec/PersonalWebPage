@@ -16,7 +16,7 @@
   --right-narrow: 18px;
   --gap: 0px;
   --banner-h: 260px;
-  --tiny-color: #d94a63;
+  --theme-color: #d94a63;
   --shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
   --header-height: 70px;
   --main-padding-left: 120px;
@@ -232,11 +232,11 @@ body.night-mode .header .logo {
   transition: background-color 0.4s ease;
 }
 .header .logo:hover {
-  color: var(--tiny-color, #d94a63);
+  color: var(--theme-color, #d94a63);
   transition: color 0.15s ease-in;
 }
 body.night-mode .header .logo:hover {
-  color: var(--tiny-color, #d94a63);
+  color: var(--theme-color, #d94a63);
   transition: color 0.15s ease-in;
 }
 .header .title {
@@ -317,11 +317,11 @@ body.night-mode .mainPage {
   transition: background-color 0.4s ease;
 }
 .mainPage:hover {
-  color: var(--tiny-color, #d94a63);
+  color: var(--theme-color, #d94a63);
   transition: color 0.15s ease-in;
 }
 body.night-mode .mainPage:hover {
-  color: var(--tiny-color, #d94a63);
+  color: var(--theme-color, #d94a63);
   transition: color 0.15s ease-in;
 }
 main {
@@ -1008,7 +1008,7 @@ body.night-mode .leftbar .toc a.active .label {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  color: var(--tiny-color, #d94a63);
+  color: var(--theme-color, #d94a63);
   flex-shrink: 0;
   transition: background-color 0.4s ease;
 }

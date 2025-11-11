@@ -4,8 +4,164 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>冰窟 | Blog</title>
-    <link type="text/css" rel="stylesheet" href="../css/nav.css" />
     <link type="text/css" rel="stylesheet" href="../css/blog.css" />
+    <script src="../js/blog.js"></script>
   </head>
-  <body></body>
+  <body class="night-mode">
+    <!-- <body class=""> -->
+    <nav class="header-nav">
+      <div class="header-nav-container">
+        <div class="navTitle"><strong>冰窟</strong>|MY PROFILE</div>
+        <div class="items">
+          <a href="../html/home.html">Home</a>
+          <a href="../html/about.html">About</a>
+          <a href="../html/blog.html">Blog</a>
+          <a href="../html/beta.html">Beta</a>
+        </div>
+        <div class="nav-right-group">
+          <div class="nav-setting">
+            <button class="nav-setting-btn">☰</button>
+          </div>
+          <a class="nav-login" href="../html/login.html">登录账号Login</a>
+        </div>
+      </div>
+    </nav>
+    <div class="banner-container">
+      <div class="banner-img"></div>
+      <div class="banner-title">XXXの博客</div>
+    </div>
+    <main>
+      <div class="main-content-wrapper">
+        <aside class="main-sidebar">
+          <div class="profile-card">
+            <div class="card-avatar"></div>
+            <div class="card-title">My blog</div>
+            <div class="card-description">
+              A blog about web development and programming.
+            </div>
+            <div class="card-socials">
+              <a href="#" class="social-icon" name="github"></a>
+              <a href="#" class="social-icon" name="twitter"></a>
+              <a href="#" class="social-icon" name="csdn"></a>
+            </div>
+          </div>
+          <div class="category-tag-card">
+            <div class="categories-card">
+              <h3 class="card-title">Categories</h3>
+              <ul class="category-list">
+                <li>
+                  <span>Examples</span>
+                  <span class="badge">1</span>
+                </li>
+                <li>
+                  <span>Guides</span>
+                  <span class="badge">1</span>
+                </li>
+              </ul>
+            </div>
+            <div class="tags-card">
+              <h3 class="card-title">Tags</h3>
+              <div class="tag-cloud">
+                <a href="#">Demo</a>
+                <a href="#">Blogging</a>
+                <a href="#">Markdown</a>
+                <a href="#">html & css</a>
+                <a href="#">JavaScript</a>
+                <a href="#">C#</a>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <section class="main-article-list">
+          <!-- <a
+            href="./articles/article.html#Module0"
+            target="_blank"
+            class="article-card"
+          >
+            <div class="card-info">
+              <h2 class="article-title">Introduction to the websites</h2>
+              <div class="article-meta">
+                <svg
+                  class="icon"
+                  viewBox="0 0 1024 1024"
+                  xmlns="http://www.w3.org/2000/svg"
+                  p-id="4658"
+                  data-spm-anchor-id="a313x.search_index.0.i1.510d3a81zqj0Yh"
+                  xmlns:xlink="http://www.w3.org/1999/xlink"
+                  width="16"
+                  height="16"
+                >
+                  <path
+                    d="M917.333333 426.666667H106.666667v469.333333l477.738666 0.021334L917.333333 895.957333V426.666667z m0-64V170.666667C917.333333 170.666667 746.666667 170.666667 746.666667 170.666667V106.666667h170.666666A64 64 0 0 1 981.333333 170.666667v725.333333A64 64 0 0 1 917.333333 960H106.666667A64 64 0 0 1 42.666667 896V170.666667C42.666667 137.408 70.330667 106.666667 106.666667 106.666667H256v64l-149.333333 0.042667V362.666667h810.666666zM277.333333 64h64v213.333333h-64V64z m384 0h64v213.333333h-64V64zM362.666667 106.666667h341.333333v64H362.666667V106.666667z"
+                    fill="#ffffff"
+                    p-id="4659"
+                  ></path>
+                </svg>
+                <span>2025-10-30</span>
+                <svg
+                  class="icon"
+                  viewBox="0 0 1024 1024"
+                  xmlns="http://www.w3.org/2000/svg"
+                  p-id="6738"
+                  width="16"
+                  height="16"
+                  xmlns:xlink="http://www.w3.org/1999/xlink"
+                >
+                  <path
+                    d="M917.333333 0v774.592H247.082667c-42.218667 0-76.693333 32.149333-79.018667 71.637333l-0.149333 4.266667v35.626667c0 40 33.066667 73.557333 74.666666 75.818666l4.501334 0.128H917.333333V1024H247.082667C171.818667 1024 109.610667 965.12 106.773333 891.413333L106.666667 886.122667V173.504C106.666667 79.701333 183.253333 3.2 277.717333 0.106667L283.690667 0H917.333333z m-64 65.365333H285.504c-61.568 0-111.936 47.786667-114.709333 106.602667L170.666667 177.024 170.666667 740.757333l1.386666-0.917333a139.328 139.328 0 0 1 71.829334-23.104l5.333333-0.085333L853.333333 716.586667V65.365333z"
+                    fill="#111111"
+                    p-id="6739"
+                  ></path>
+                  <path
+                    d="M298.666667 43.584v718.976H234.666667V43.584h64zM917.333333 849.706667v65.365333H234.666667V849.706667h682.666666z"
+                    fill="#111111"
+                    p-id="6740"
+                  ></path>
+                </svg>
+                <span># Examples</span>
+
+                <svg
+                  t="1762823134087"
+                  class="icon"
+                  viewBox="0 0 1024 1024"
+                  xmlns="http://www.w3.org/2000/svg"
+                  p-id="9596"
+                  xmlns:xlink="http://www.w3.org/1999/xlink"
+                  width="16"
+                  height="16"
+                >
+                  <path
+                    d="M128 341.333333m42.666667 0l682.666666 0q42.666667 0 42.666667 42.666667l0 0q0 42.666667-42.666667 42.666667l-682.666666 0q-42.666667 0-42.666667-42.666667l0 0q0-42.666667 42.666667-42.666667Z"
+                    fill="#ffffff"
+                    p-id="9597"
+                  ></path>
+                  <path
+                    d="M422.613333 85.333333H426.666667a38.613333 38.613333 0 0 1 38.4 42.453334L387.84 900.266667a42.666667 42.666667 0 0 1-42.453333 38.4H341.333333a38.613333 38.613333 0 0 1-38.4-42.453334L380.16 123.733333a42.666667 42.666667 0 0 1 42.453333-38.4zM678.613333 85.333333H682.666667a38.613333 38.613333 0 0 1 38.4 42.453334L643.84 900.266667a42.666667 42.666667 0 0 1-42.453333 38.4H597.333333a38.613333 38.613333 0 0 1-38.4-42.453334L636.16 123.733333a42.666667 42.666667 0 0 1 42.453333-38.4z"
+                    fill="#ffffff"
+                    p-id="9598"
+                  ></path>
+                  <path
+                    d="M128 597.333333m42.666667 0l682.666666 0q42.666667 0 42.666667 42.666667l0 0q0 42.666667-42.666667 42.666667l-682.666666 0q-42.666667 0-42.666667-42.666667l0 0q0-42.666667 42.666667-42.666667Z"
+                    fill="#ffffff"
+                    p-id="9599"
+                  ></path>
+                </svg>
+                <span class="tags">
+                  <span>Demo</span>
+                  <span>/</span>
+                  <span>Blogging</span>
+                </span>
+              </div>
+              <p class="article-summary">Read more about the websites</p>
+              <div class="article-stats">
+                <span>xxx words</span> <span>|</span> <span>x minutes</span>
+              </div>
+            </div>
+            <div class="card-arrow">&gt;</div>
+          </a> -->
+        </section>
+      </div>
+    </main>
+  </body>
 </html>
