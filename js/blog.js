@@ -1,4 +1,260 @@
-function themeColorSet() {}
+// 保存当前配置到storage
+function saveSetting(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    console.error(`保存设置失败: ${key}`, e);
+  }
+}
+
+// 加载storage中的配置
+function loadSetting(key, defaultValue) {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : defaultValue;
+  } catch (e) {
+    console.warn(`加载设置失败: ${key}`, e);
+    return defaultValue;
+  }
+}
+function initSettingsToggle() {
+  const toggles = [
+    {
+      btn: document.getElementById("theme-toggle-button"),
+      menu: document.getElementById("theme-menu"),
+    },
+    {
+      btn: document.getElementById("bg-toggle-button"),
+      menu: document.getElementById("bg-menu"),
+    },
+    {
+      btn: document.getElementById("light-toggle-button"),
+      menu: document.getElementById("light-menu"),
+    },
+  ];
+  // 主题色 切换
+  const slider = document.getElementById("hue-slider");
+  const valueInput = document.getElementById("hue-value");
+  const resetColorBtn = document.getElementById("reset-color-btn");
+  // 壁纸 模式切换
+  const bannerBg = document.getElementById("banner-bg");
+  const fullScreenBg = document.getElementById("full-screen-bg");
+  const solidColorBg = document.getElementById("solid-color-bg");
+  // 白昼/黑夜 模式切换
+  const lightMode = document.getElementById("light-mode");
+  const darkMode = document.getElementById("dark-mode");
+  const systemMode = document.getElementById("system-mode");
+
+  const body = document.body;
+  const root = document.documentElement;
+
+  toggles.forEach((toggle) => {
+    const btn = toggle.btn;
+    const menu = toggle.menu;
+    if (!btn || !menu) return;
+    btn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      menu.classList.toggle("is-active");
+      toggles.forEach((otherToggle) => {
+        if (otherToggle !== toggle) {
+          otherToggle.menu.classList.remove("is-active");
+        }
+      });
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    const isClickInside = toggles.some(
+      (toggle) =>
+        toggle.btn.contains(event.target) || toggle.menu.contains(event.target)
+    );
+    if (!isClickInside) {
+      toggles.forEach((toggle) => {
+        toggle.menu.classList.remove("is-active");
+      });
+    }
+  });
+  // 主题色 切换
+  function upateThemeColor(hue) {
+    let validHue = Math.min(Math.max(0, parseInt(hue)), 360);
+    if (isNaN(validHue)) {
+      validHue = 207;
+    }
+    root.style.setProperty("--hue", validHue);
+    slider.value = validHue;
+    valueInput.value = validHue;
+    saveSetting("hue", validHue);
+  }
+  slider.addEventListener("input", (event) => {
+    upateThemeColor(event.target.value);
+  });
+  valueInput.addEventListener("input", (event) => {
+    upateThemeColor(event.target.value);
+  });
+  resetColorBtn.addEventListener("click", (event) => {
+    upateThemeColor(207);
+  });
+  // 壁纸 模式切换
+  function activeBgMenu(menu) {
+    if (fullScreenBg && fullScreenBg.classList.contains("is-active"))
+      fullScreenBg.classList.remove("is-active");
+    if (solidColorBg && solidColorBg.classList.contains("is-active"))
+      solidColorBg.classList.remove("is-active");
+    if (bannerBg && bannerBg.classList.contains("is-active"))
+      bannerBg.classList.remove("is-active");
+    if (menu && !menu.classList.contains("is-active"))
+      menu.classList.add("is-active");
+  }
+  function setBgMode(mode) {
+    if (!body || !root) return;
+    if (body.classList.contains("bg-mode-banner")) {
+      body.classList.remove("bg-mode-banner");
+    }
+    if (body.classList.contains("bg-mode-fullscreen")) {
+      body.classList.remove("bg-mode-fullscreen");
+    }
+    if (body.classList.contains("bg-mode-solid")) {
+      body.classList.remove("bg-mode-solid");
+    }
+    const navHeightStr =
+      getComputedStyle(root).getPropertyValue("--nav-height");
+    const navHeightVal = parseInt(navHeightStr, 10) + 45;
+    if (mode === "banner") {
+      body.classList.add("bg-mode-banner");
+      root.style.setProperty("--overlap-distance", "65px");
+    } else if (mode === "fullscreen") {
+      body.classList.add("bg-mode-fullscreen");
+      if (!isNaN(navHeightVal)) {
+        root.style.setProperty("--overlap-distance", -navHeightVal + "px"); // " -60px"
+      }
+    } else if (mode === "solid") {
+      body.classList.add("bg-mode-solid");
+      if (!isNaN(navHeightVal)) {
+        root.style.setProperty("--overlap-distance", -navHeightVal + "px"); // " -60px"
+      }
+    }
+  }
+  bannerBg.addEventListener("click", (event) => {
+    event.stopPropagation();
+    activeBgMenu(bannerBg);
+    setBgMode("banner");
+    saveSetting("bg-mode", "banner");
+  });
+  fullScreenBg.addEventListener("click", (event) => {
+    event.stopPropagation();
+    activeBgMenu(fullScreenBg);
+    setBgMode("fullscreen");
+    saveSetting("bg-mode", "fullscreen");
+  });
+  solidColorBg.addEventListener("click", (event) => {
+    event.stopPropagation();
+    activeBgMenu(solidColorBg);
+    setBgMode("solid");
+    saveSetting("bg-mode", "solid");
+  });
+  // 白昼/黑夜 模式切换
+  function activeLightMenu(menu) {
+    if (lightMode && lightMode.classList.contains("is-active"))
+      lightMode.classList.remove("is-active");
+    if (darkMode && darkMode.classList.contains("is-active"))
+      darkMode.classList.remove("is-active");
+    if (systemMode && systemMode.classList.contains("is-active"))
+      systemMode.classList.remove("is-active");
+    if (menu && !menu.classList.contains("is-active"))
+      menu.classList.add("is-active");
+  }
+  function setLightMode(isLight) {
+    if (isLight) {
+      if (body && body.classList.contains("night-mode")) {
+        body.classList.remove("night-mode");
+      }
+    } else {
+      if (body && !body.classList.contains("night-mode")) {
+        body.classList.add("night-mode");
+      }
+    }
+  }
+  lightMode.addEventListener("click", (event) => {
+    event.stopPropagation();
+    activeLightMenu(lightMode);
+
+    setLightMode(true);
+    saveSetting("light-mode", "light");
+  });
+  darkMode.addEventListener("click", (event) => {
+    event.stopPropagation();
+    activeLightMenu(darkMode);
+
+    setLightMode(false);
+    saveSetting("light-mode", "dark");
+  });
+  systemMode.addEventListener("click", (event) => {
+    event.stopPropagation();
+    activeLightMenu(systemMode);
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      setLightMode(false);
+    } else {
+      setLightMode(true);
+    }
+    saveSetting("light-mode", "system");
+  });
+
+  // 恢复样式
+  const savedHue = loadSetting("hue", 207);
+  const savedBgMode = loadSetting("bg-mode", "banner");
+  const savedLightMode = loadSetting("light-mode", "dark");
+  upateThemeColor(savedHue);
+  if (savedBgMode === "banner") {
+    activeBgMenu(bannerBg);
+    setBgMode("banner");
+  } else if (savedBgMode === "fullscreen") {
+    activeBgMenu(fullScreenBg);
+    setBgMode("fullscreen");
+  } else if (savedBgMode === "solid") {
+    activeBgMenu(solidColorBg);
+    setBgMode("solid");
+  }
+  if (savedLightMode === "light") {
+    activeLightMenu(lightMode);
+    setLightMode(true);
+  } else if (savedLightMode === "dark") {
+    activeLightMenu(darkMode);
+    setLightMode(false);
+  } else if (savedLightMode === "system") {
+    activeLightMenu(systemMode);
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      setLightMode(false);
+    } else {
+      setLightMode(true);
+    }
+  }
+}
+function initScrollToTop() {
+  const scrollToTopBtn = document.getElementById("scroll-to-top-btn");
+
+  const articleList = document.querySelector(".main-article-list");
+  if (!scrollToTopBtn || !articleList) {
+    console.error("找不到回到顶部按钮或文章列表元素。");
+    return;
+  }
+  const firstArticleCard = articleList.firstElementChild;
+  if (firstArticleCard == null) return;
+  window.addEventListener("scroll", () => {
+    const rect = firstArticleCard.getBoundingClientRect();
+    const shouldShowButton = rect.bottom <= 0;
+    if (shouldShowButton) {
+      scrollToTopBtn.classList.add("show");
+    } else {
+      scrollToTopBtn.classList.remove("show");
+    }
+  });
+  scrollToTopBtn.addEventListener("click", () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  });
+}
 function articlesInit() {
   const ARTICLE_DATA_URL = "../json/articles/articles.json";
 
@@ -395,6 +651,7 @@ function articlesInit() {
 
       displayAllArticles();
       setupEventListeners();
+      initScrollToTop();
     } catch (error) {
       console.error("加载文章数据失败:", error);
       articleListContainer.innerHTML =
@@ -404,6 +661,8 @@ function articlesInit() {
 
   loadArticles();
 }
+
 document.addEventListener("DOMContentLoaded", () => {
   articlesInit();
+  initSettingsToggle();
 });

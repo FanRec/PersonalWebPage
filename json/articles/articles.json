@@ -55,5 +55,25 @@
         }
       ]
     }
+  },
+  {
+    "Module2": {
+      "title": "Computer Organization Reviews",
+      "name": "Module2",
+      "img": "../../static/articles/icon/module2.jpg",
+      "date": "2025/11/13",
+      "category": "Note",
+      "tag": "Computer Organization",
+      "summary": "Computer Organization is a fundamental course for computer science students. This article will review the basic knowledge of computer organization.",
+      "words": "xxx",
+      "readingTime": "x",
+      "articles": [
+        {
+          "type": "file",
+          "name": "计组基础知识复习笔记",
+          "path": "articles/contents/Module2/ComputerOrganization.html"
+        }
+      ]
+    }
   }
 ]

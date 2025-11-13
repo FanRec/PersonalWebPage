@@ -463,6 +463,13 @@ body.night-mode .page-content .article {
   font-size: 1.1rem;
   font-family: var(--article-font-p);
 }
+.page-content .article .article-content img {
+  max-width: 100%;
+  height: auto;
+  margin: 1rem 0;
+  box-shadow: var(--shadow);
+  transition: transform 0.1s ease;
+}
 .page-content .article .chapter-switcher {
   display: flex;
   align-items: center;

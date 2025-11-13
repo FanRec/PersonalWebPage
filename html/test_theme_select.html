@@ -1,199 +1,250 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>主题色选择器</title>
-    <style id="style-css">
-      /* ------------------ 样式定义 (CSS) ------------------ */
-      :root {
-        /* 1. 唯一的全局主题色变量，默认为 HSL 格式 */
-        --theme-color: hsl(165, 100%, 50%);
+    <style>
+      /* * CSS (样式)
+         */
 
-        --bar-height: 20px;
-        --handle-size: 10px;
+      /* 在 :root 中定义 CSS 变量，以便 JS 可以轻松更新它们 */
+      :root {
+        --theme-hue: 360; /* 默认色相 (360 对应图片中的粉红色) */
+
+        /* --theme-hue 会被 JS 动态更新 */
+        /* 我们基于这个色相定义几个颜色 */
+        --theme-color: hsl(var(--theme-hue), 100%, 50%);
+        --theme-color-light: hsl(var(--theme-hue), 100%, 92%);
+        --theme-color-dark: hsl(var(--theme-hue), 70%, 40%);
       }
 
       body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        display: grid;
+        place-items: center;
         min-height: 100vh;
-        margin: 0;
-        background-color: #f0f0f0;
+        background: #f0f2f5;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+          "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
       }
 
-      .color-picker-container {
+      .theme-color-picker {
         width: 300px;
-        padding: 15px;
+        padding: 16px;
         background: rgba(255, 255, 255, 0.9);
         border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        font-family: sans-serif;
-        border: 2px solid var(--theme-color);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        /* 模糊效果，模拟图片中的"毛玻璃"背景 */
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
       }
 
       .header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
       }
 
-      .label {
+      .title {
+        display: flex;
+        align-items: center;
         font-size: 16px;
+        font-weight: 600;
         color: #333;
       }
 
-      .value {
-        padding: 5px 10px;
-        background-color: var(--theme-color);
-        color: white;
-        border-radius: 6px;
-        font-weight: bold;
-      }
-
-      .gradient-bar {
-        position: relative;
-        height: var(--bar-height);
-        border-radius: var(--bar-height);
-        cursor: pointer;
-
-        /* ✅ 修正后的核心：使用 HSL() 定义精确的色相环渐变 */
-        background: linear-gradient(
-          to right,
-          hsl(0, 100%, 70%) 0%,
-          hsl(60, 100%, 70%) 16.67%,
-          hsl(120, 100%, 70%) 33.33%,
-          hsl(180, 100%, 70%) 50%,
-          hsl(240, 100%, 70%) 66.67%,
-          hsl(300, 100%, 70%) 83.33%,
-          hsl(360, 100%, 70%) 100%
-        );
-      }
-
-      .color-handle {
-        position: absolute;
-        top: calc(50% - var(--handle-size) / 2);
-        width: var(--handle-size);
-        height: calc(var(--bar-height) * 1.5);
-        background-color: white;
-        border: 3px solid white;
+      /* 标题 "主题色" 旁边的彩色竖条 */
+      .title::before {
+        content: "";
+        display: inline-block;
+        width: 4px;
+        height: 16px;
         border-radius: 2px;
-        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-        border-left: 2px solid #555;
-        border-right: 2px solid #555;
-        transform: translateX(-50%);
-        pointer-events: none;
+        margin-right: 8px;
+        background-color: var(--theme-color); /* 使用主题色 */
+        transition: background-color 0.1s ease;
       }
 
-      .preview-button {
-        margin-top: 20px;
-        padding: 10px 15px;
-        background-color: var(--theme-color);
-        color: white;
+      .reset-btn {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
         border: none;
         border-radius: 6px;
+        font-size: 16px;
         cursor: pointer;
-        transition: background-color 0.3s;
+        background-color: var(--theme-color-light); /* 使用主题浅色 */
+        color: var(--theme-color-dark); /* 使用主题深色 */
+        transition: all 0.1s ease;
+      }
+
+      .reset-btn:hover {
+        opacity: 0.8;
+      }
+
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .hue-value {
+        width: 50px;
+        height: 30px;
+        padding: 0 8px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        text-align: center;
+        font-size: 14px;
+        box-sizing: border-box; /* 确保 padding 不会影响宽度 */
+      }
+
+      /* 移除 number input 的上下箭头 (仅 Webkit) */
+      .hue-value::-webkit-outer-spin-button,
+      .hue-value::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      /* (Firefox) */
+      .hue-value[type="number"] {
+        -moz-appearance: textfield;
+      }
+
+      .hue-value:focus {
+        outline: none;
+        border-color: var(--theme-color); /* 聚焦时使用主题色 */
+        box-shadow: 0 0 0 2px var(--theme-color-light);
+      }
+
+      /* * 自定义滑块 (input[type="range"]) 样式 
+         */
+      .hue-slider {
+        flex-grow: 1; /* 占据剩余空间 */
+        -webkit-appearance: none; /* 移除默认样式 */
+        appearance: none;
+        width: 100%;
+        height: 10px; /* 轨道高度 */
+        background: linear-gradient(
+          to right,
+          hsl(0, 100%, 50%),
+          hsl(60, 100%, 50%),
+          hsl(120, 100%, 50%),
+          hsl(180, 100%, 50%),
+          hsl(240, 100%, 50%),
+          hsl(300, 100%, 50%),
+          hsl(360, 100%, 50%)
+        ); /* 色相环渐变 */
+        border-radius: 5px;
+        outline: none;
+        cursor: pointer;
+      }
+
+      /* 滑块的"滑块" (Chrome/Safari) */
+      .hue-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 8px; /* 滑块宽度 */
+        height: 22px; /* 滑块高度 */
+        background: var(--theme-color-light); /* 使用主题浅色 */
+        border: 2px solid var(--theme-color); /* 使用主题色边框 */
+        border-radius: 4px;
+        margin-top: -6px; /* 垂直居中 ( (22px - 10px) / 2 * -1 ) */
+        transition: background-color 0.1s ease, border-color 0.1s ease;
+      }
+
+      /* 滑块的"滑块" (Firefox) */
+      .hue-slider::-moz-range-thumb {
+        width: 8px;
+        height: 22px;
+        background: var(--theme-color-light);
+        border: 2px solid var(--theme-color);
+        border-radius: 4px;
+        cursor: pointer;
       }
     </style>
   </head>
   <body>
-    <div class="color-picker-container">
+    <div class="theme-color-picker">
       <div class="header">
-        <span class="label">主题色</span>
-        <span id="color-value" class="value">165</span>
+        <span class="title">主题色</span>
+        <button class="reset-btn" id="reset-button" title="重置">
+          <span>&#x21BB;</span>
+        </button>
       </div>
-      <div id="gradient-bar" class="gradient-bar">
-        <div id="color-handle" class="color-handle"></div>
+
+      <div class="slider-container">
+        <input
+          type="range"
+          class="hue-slider"
+          id="hue-slider"
+          min="0"
+          max="360"
+          value="360"
+        />
+
+        <input
+          type="number"
+          class="hue-value"
+          id="hue-value"
+          min="0"
+          max="360"
+          value="360"
+        />
       </div>
-      <button class="preview-button">预览按钮 (随主题色变化)</button>
     </div>
 
-    <script id="script-js">
-      /* ------------------ 逻辑实现 (JavaScript) ------------------ */
-      document.addEventListener("DOMContentLoaded", () => {
-        const bar = document.getElementById("gradient-bar");
-        const handle = document.getElementById("color-handle");
-        const valueDisplay = document.getElementById("color-value");
+    <script>
+      /* * JavaScript (行为)
+       */
 
-        // 获取文档根元素，用于设置全局 CSS 变量
-        const root = document.documentElement;
+      // 1. 获取所有需要操作的 DOM 元素
+      const slider = document.getElementById("hue-slider");
+      const valueInput = document.getElementById("hue-value");
+      const resetButton = document.getElementById("reset-button");
+      const root = document.documentElement; // HTML 的 <html> 根元素
 
-        let isDragging = false;
+      // 2. 创建一个函数来更新所有内容
+      function updateThemeColor(hue) {
+        // 确保 hue 是一个在 0-360 之间的数字
+        let validHue = Math.min(Math.max(0, parseInt(hue)), 360);
 
-        /**
-         * 根据鼠标位置更新指示器位置、色相值和主题色变量
-         * @param {number} clientX - 鼠标的 X 坐标
-         */
-        function updateHandlePosition(clientX) {
-          const barRect = bar.getBoundingClientRect();
-
-          // 1. 计算相对位置
-          let relativeX = clientX - barRect.left;
-
-          // 限制在边界内 [0, barWidth]
-          if (relativeX < 0) {
-            relativeX = 0;
-          } else if (relativeX > barRect.width) {
-            relativeX = barRect.width;
-          }
-
-          // 2. 计算百分比位置 (0到1)
-          const percentage = relativeX / barRect.width;
-
-          // 3. 计算色相值 (Hue: 0到360)
-          const maxValue = 360;
-          const hueValue = Math.round(percentage * maxValue);
-
-          // 4. 计算完整的 HSL 颜色字符串 (饱和度S=100%, 亮度L=50%)
-          const colorString = `hsl(${hueValue}, 100%, 70%)`;
-
-          // 5. 更新 DOM
-          handle.style.left = `${relativeX}px`;
-          valueDisplay.textContent = hueValue;
-          handle.style.backgroundColor = colorString;
-
-          // 6. ***核心：设置单个 CSS 变量***
-          // 变量名为 --theme-color，值是完整的 HSL 字符串
-          root.style.setProperty("--theme-color", colorString);
+        if (isNaN(validHue)) {
+          validHue = 360; // 如果输入无效则重置
         }
 
-        // --- 事件处理函数 ---
-        const startDrag = (e) => {
-          isDragging = true;
-          e.preventDefault();
-          updateHandlePosition(e.clientX);
-        };
+        // 3. 更新 CSS 变量
+        // JS 更新 :root 上的 --theme-hue 变量
+        // CSS 会自动根据这个新变量重新渲染所有使用它的地方
+        root.style.setProperty("--theme-hue", validHue);
 
-        const doDrag = (e) => {
-          if (isDragging) {
-            updateHandlePosition(e.clientX);
-          }
-        };
+        // 4. 同步滑块和输入框的值
+        slider.value = validHue;
+        valueInput.value = validHue;
+      }
 
-        const stopDrag = () => {
-          isDragging = false;
-        };
+      // 5. 添加事件监听器
 
-        // --- 绑定事件 ---
-        bar.addEventListener("mousedown", startDrag);
-        document.addEventListener("mousemove", doDrag);
-        document.addEventListener("mouseup", stopDrag);
+      // 当拖动滑块时
+      slider.addEventListener("input", (event) => {
+        updateThemeColor(event.target.value);
+      });
 
-        // --- 初始设置 ---
-        const initialHue = 165; // 默认值
-        const initialPercentage = initialHue / 360;
+      // 当在输入框中输入数字时
+      valueInput.addEventListener("input", (event) => {
+        updateThemeColor(event.target.value);
+      });
 
-        // 延迟执行以确保 barRect 已经计算出正确的宽度
-        setTimeout(() => {
-          const barWidth = bar.getBoundingClientRect().width;
-          const initialX = barWidth * initialPercentage;
+      // 当点击重置按钮时
+      resetButton.addEventListener("click", () => {
+        updateThemeColor(360); // 重置回 360
+      });
 
-          // 模拟鼠标点击到初始位置，以初始化显示和变量
-          updateHandlePosition(bar.getBoundingClientRect().left + initialX);
-        }, 0);
+      // 6. 页面加载时，用默认值 360 初始化一次
+      document.addEventListener("DOMContentLoaded", () => {
+        updateThemeColor(360);
       });
     </script>
   </body>
