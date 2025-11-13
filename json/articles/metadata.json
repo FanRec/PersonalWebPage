@@ -16,5 +16,17 @@
     "icon": "计",
     "bannerBg": "url('static/img/article/post-2/banner.png')",
     "bannerTitle": "Computer Organization Review"
+  },
+  "articles/contents/Module0/introduction.html": {
+    "title": "📄个人博客页介绍 ",
+    "icon": "B",
+    "bannerBg": "url('static/img/article/post-0/banner.png')",
+    "bannerTitle": "Introduction Of Personal Blog"
+  },
+  "articles/contents/Module0/blog-page-introduction.html": {
+    "title": "🛠️ 个人博客详情 - 使用指南 ",
+    "icon": "B",
+    "bannerBg": "url('static/img/article/post-0/banner.png')",
+    "bannerTitle": "Introduction Of Personal Blog"
   }
 }
